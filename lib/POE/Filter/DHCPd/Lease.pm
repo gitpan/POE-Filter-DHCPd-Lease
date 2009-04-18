@@ -6,20 +6,22 @@ POE::Filter::DHCPd::Lease - parses leases from isc dhcpd leases file
 
 =head1 VERSION
 
-0.01
+0.02
 
 =cut
 
 use strict;
 use warnings;
 use base qw/POE::Filter/;
+use Time::Local;
 use constant BUFFER => 0;
 use constant LEASE  => 1;
 use constant DONE   => "\a";
 
-our $VERSION = "0.01";
-our $START   = qr/^ lease \s ([\d\.]+) \s \{ /mx;
-our $END     = qr/ } [\n\r]+ /mx;
+our $VERSION = "0.02";
+our $DATE    = qr# (\d{4})/(\d\d)/(\d\d) \s (\d\d):(\d\d):(\d\d) #mx;
+our $START   = qr#^ lease \s ([\d\.]+) \s \{ #mx;
+our $END     = qr# } [\n\r]+ #mx;
 our %PARSER  = (
     starts      => qr/ starts  \s\d+\s (.+) /mx,
     ends        => qr/ ends    \s\d+\s (.+) /mx,
@@ -58,21 +60,6 @@ sub get_one_start {
 
     $self->[BUFFER] .= join "", @$data;
 
-    if(!defined $self->[LEASE] and $self->[BUFFER] =~ s/$START//) {
-        $self->[LEASE] = { ip => $1 };
-    }
-
-    if($self->[LEASE]) {
-        for my $k (keys %PARSER) {
-            if($self->[BUFFER] =~ s/\s*$PARSER{$k};[\n\r]*//) {
-                $self->[LEASE]{$k} = $1;
-            }
-        }
-        if($self->[BUFFER] =~ s/.*$END//s) {
-            $self->[LEASE]{DONE()} = 1;
-        }
-    }
-
     return;
 }
 
@@ -82,10 +69,10 @@ sub get_one_start {
 
 C<$leases> is an array-ref, containing zero or one leases.
 
- starts      => start data of lease
- ends        => the lease expire data
- binding     => either "active" or "free"
- hw_ethernet => ethernet address
+ starts      => epoch value
+ ends        => epoch value
+ binding     => "active" or "free"
+ hw_ethernet => 12 chars, without ":"
  hostname    => the client hostname
  circuit_id  => circuit id from relay agent (option 82)
  remote_id   => remote id from relay agent (option 82)
@@ -95,12 +82,51 @@ C<$leases> is an array-ref, containing zero or one leases.
 sub get_one {
     my $self = shift;
 
+    if(!$self->[LEASE]) {
+        if($self->[BUFFER] =~ s/$START//) {
+            $self->[LEASE] = { ip => $1 };
+        }
+    }
+
+    if($self->[LEASE]) {
+        for my $k (keys %PARSER) {
+            if($self->[BUFFER] =~ s/\s*$PARSER{$k};[\n\r]*//) {
+                $self->[LEASE]{$k} = $1;
+            }
+        }
+        if($self->[BUFFER] =~ s/.*?$END//s) {
+            $self->[LEASE]{DONE()} = 1;
+        }
+    }
+
     if($self->[LEASE] and $self->[LEASE]{DONE()}) {
         delete $self->[LEASE]{DONE()};
-        return [ delete $self->[LEASE] ];
+        my $lease = delete $self->[LEASE];
+
+        for my $k (qw/starts ends/) {
+            next unless($lease->{$k});
+            if(my @values = $lease->{$k} =~ $DATE) {
+                $lease->{$k} = timelocal(reverse @values);
+            }
+        }
+
+        if(my $mac =  _mac($lease->{'hw_ethernet'})) {
+            $lease->{'hw_ethernet'} = $mac;
+        }
+
+        return [ $lease ];
     }
 
     return [];
+}
+
+sub _mac {
+    my $str = shift or return;
+
+    $str =  join "", map { sprintf "%02s", $_ } split /:/, $str;
+    $str =~ tr/[0-9a-fA-F]//cd;
+
+    return length $str == 12 ? lc($str) : undef;
 }
 
 =head2 get
