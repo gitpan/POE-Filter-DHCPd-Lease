@@ -5,7 +5,7 @@ author:
 build_requires:
   Test::More: 0
 distribution_type: module
-generated_by: 'Module::Install version 0.79'
+generated_by: 'Module::Install version 0.77'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -20,4 +20,4 @@ requires:
   POE::Filter: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.03
+version: 0.04
