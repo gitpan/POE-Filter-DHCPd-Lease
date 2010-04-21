@@ -6,7 +6,7 @@ POE::Filter::DHCPd::Lease - parses leases from isc dhcpd leases file
 
 =head1 VERSION
 
-0.04
+0.05
 
 =cut
 
@@ -18,7 +18,7 @@ use constant BUFFER => 0;
 use constant LEASE  => 1;
 use constant DONE   => "\a";
 
-our $VERSION = "0.04";
+our $VERSION = '0.05';
 our $DATE    = qr# (\d{4})/(\d\d)/(\d\d) \s (\d\d):(\d\d):(\d\d) #mx;
 our $START   = qr#^ lease \s ([\d\.]+) \s \{ #mx;
 our $END     = qr# } [\n\r]+ #mx;
@@ -105,9 +105,9 @@ sub get_one {
 
         for my $k (qw/starts ends/) {
             next unless($lease->{$k});
-            if(my @values = reverse $lease->{$k} =~ $DATE) {
-                $values[4]--;
-                $lease->{$k} = timelocal(@values);
+            if(my @values = $lease->{$k} =~ $DATE) {
+                $values[1]--; # decrease month
+                $lease->{$k} = timelocal(reverse @values);
             }
         }
 
