@@ -8,7 +8,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.91'
+generated_by: 'Module::Install version 0.92'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -26,4 +26,4 @@ resources:
   homepage: http://search.cpan.org/dist/POE-Filter-DHCPd-Lease
   license: http://dev.perl.org/licenses/
   repository: git://github.com/jhthorsen/poe-filter-dhcpd-lease.git
-version: 0.05_01
+version: 0.0502
