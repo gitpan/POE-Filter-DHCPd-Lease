@@ -27,4 +27,4 @@ resources:
   homepage: http://search.cpan.org/dist/POE-Filter-DHCPd-Lease
   license: http://dev.perl.org/licenses/
   repository: git://github.com/jhthorsen/poe-filter-dhcpd-lease.git
-version: 0.07
+version: 0.0701
