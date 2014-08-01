@@ -6,11 +6,11 @@ POE::Filter::DHCPd::Lease - parses leases from isc dhcpd leases file
 
 =head1 VERSION
 
-0.0702
+0.0703
 
 =cut
 
-our $VERSION = '0.0702';
+our $VERSION = '0.0703';
 
 use strict;
 use warnings;
@@ -25,7 +25,8 @@ our $START   = qr#^ lease \s ([\d\.]+) \s \{ #mx;
 our $END     = qr# } [\n\r]+ #mx;
 our $PARSER  = qr / (?: (?<name>starts) \s\d+\s (?<value>.+?)
                     | (?<name>ends)    \s\d+\s (?<value>.+?)
-                    | (?<name>binding) \s state \s (?<value>\S+)
+                    | ^\s*(?<name>binding) \s state \s (?<value>\S+)
+                    | ^\s*(?<name>next) \s binding \s state \s (?<value>\S+)
                     | hardware \s (?<name>ethernet) \s (?<value>\S+)
                     | option \s agent.(?<name>remote-id) \s (?<value>.+?)
                     | option \s agent.(?<name>circuit-id) \s (?<value>.+?)
